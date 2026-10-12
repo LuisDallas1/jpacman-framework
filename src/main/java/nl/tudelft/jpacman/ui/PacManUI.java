@@ -107,10 +107,18 @@ public class PacManUI extends JFrame {
     }
 
     /**
-     * Draws the next frame, i.e. refreshes the scores and game.
+     * Draws the next frame, i.e. repaints the game board.
+     *
+     * <p>
+     * <strong>Observer pattern:</strong> the score panel no longer needs to be
+     * refreshed here. {@link ScorePanel} implements {@link nl.tudelft.jpacman.level.PlayerObserver}
+     * and updates itself whenever {@link nl.tudelft.jpacman.level.Player}
+     * fires a {@code scoreChanged} or {@code playerDied} event. Removing the
+     * periodic {@code scorePanel.refresh()} call eliminates 25 redundant label
+     * rewrites per second.
+     * </p>
      */
     private void nextFrame() {
         boardPanel.repaint();
-        scorePanel.refresh();
     }
 }
