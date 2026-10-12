@@ -1,14 +1,14 @@
 package nl.tudelft.jpacman.level;
 
 import nl.tudelft.jpacman.board.Unit;
+import nl.tudelft.jpacman.board.UnitVisitor;
 import nl.tudelft.jpacman.npc.Ghost;
 
 /**
  * A simple implementation of a collision map for the JPacman player.
  * <p>
- * It uses a number of instanceof checks to implement the multiple dispatch for the 
- * collisionmap. For more realistic collision maps, this approach will not scale,
- * and the recommended approach is to use a {@link CollisionInteractionMap}.
+ * Uses two visitor dispatches to select a rule for both units without type
+ * checks, casts or reflection. Noninteractive pairs explicitly have no effect.
  *
  * @author Arie van Deursen, 2014
  *
@@ -16,39 +16,128 @@ import nl.tudelft.jpacman.npc.Ghost;
 
 public class PlayerCollisions implements CollisionMap {
 
+    /** Dispatches the moving unit to an explicit collision rule. */
+    private final class MoverVisitor implements UnitVisitor {
+        private final Unit target;
+
+        MoverVisitor(Unit target) {
+            this.target = target;
+        }
+
+        @Override
+        public void visit(Player unit) {
+            target.accept(new PlayerTargetVisitor(unit));
+        }
+
+        @Override
+        public void visit(Ghost unit) {
+            target.accept(new GhostTargetVisitor(unit));
+        }
+
+        @Override
+        public void visit(Pellet unit) {
+            target.accept(new PelletTargetVisitor(unit));
+        }
+
+        @Override
+        public void visit(Unit unit) {
+            // This pair has no gameplay effect.
+        }
+    }
+
+    /** Dispatches the target unit to an explicit collision rule. */
+    private final class PlayerTargetVisitor implements UnitVisitor {
+        private final Player player;
+
+        PlayerTargetVisitor(Player player) {
+            this.player = player;
+        }
+
+        @Override
+        public void visit(Player unit) {
+            // This pair has no gameplay effect.
+        }
+
+        @Override
+        public void visit(Ghost unit) {
+            playerVersusGhost(player, unit);
+        }
+
+        @Override
+        public void visit(Pellet unit) {
+            playerVersusPellet(player, unit);
+        }
+
+        @Override
+        public void visit(Unit unit) {
+            // This pair has no gameplay effect.
+        }
+    }
+
+    /** Dispatches the target unit to an explicit collision rule. */
+    private final class GhostTargetVisitor implements UnitVisitor {
+        private final Ghost ghost;
+
+        GhostTargetVisitor(Ghost ghost) {
+            this.ghost = ghost;
+        }
+
+        @Override
+        public void visit(Player unit) {
+            playerVersusGhost(unit, ghost);
+        }
+
+        @Override
+        public void visit(Ghost unit) {
+            // This pair has no gameplay effect.
+        }
+
+        @Override
+        public void visit(Pellet unit) {
+            // This pair has no gameplay effect.
+        }
+
+        @Override
+        public void visit(Unit unit) {
+            // This pair has no gameplay effect.
+        }
+    }
+
+    /** Dispatches the target unit to an explicit collision rule. */
+    private final class PelletTargetVisitor implements UnitVisitor {
+        private final Pellet pellet;
+
+        PelletTargetVisitor(Pellet pellet) {
+            this.pellet = pellet;
+        }
+
+        @Override
+        public void visit(Player unit) {
+            playerVersusPellet(unit, pellet);
+        }
+
+        @Override
+        public void visit(Ghost unit) {
+            // This pair has no gameplay effect.
+        }
+
+        @Override
+        public void visit(Pellet unit) {
+            // This pair has no gameplay effect.
+        }
+
+        @Override
+        public void visit(Unit unit) {
+            // This pair has no gameplay effect.
+        }
+    }
+
+
     @Override
     public void collide(Unit mover, Unit collidedOn) {
-        if (mover instanceof Player) {
-            playerColliding((Player) mover, collidedOn);
-        }
-        else if (mover instanceof Ghost) {
-            ghostColliding((Ghost) mover, collidedOn);
-        }
-        else if (mover instanceof Pellet) {
-            pelletColliding((Pellet) mover, collidedOn);
-        }
+        mover.accept(new MoverVisitor(collidedOn));
     }
 
-    private void playerColliding(Player player, Unit collidedOn) {
-        if (collidedOn instanceof Ghost) {
-            playerVersusGhost(player, (Ghost) collidedOn);
-        }
-        if (collidedOn instanceof Pellet) {
-            playerVersusPellet(player, (Pellet) collidedOn);
-        }
-    }
-
-    private void ghostColliding(Ghost ghost, Unit collidedOn) {
-        if (collidedOn instanceof Player) {
-            playerVersusGhost((Player) collidedOn, ghost);
-        }
-    }
-
-    private void pelletColliding(Pellet pellet, Unit collidedOn) {
-        if (collidedOn instanceof Player) {
-            playerVersusPellet((Player) collidedOn, pellet);
-        }
-    }
 
 
     /**

@@ -6,6 +6,7 @@ import java.util.Set;
 
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Unit;
+import nl.tudelft.jpacman.board.UnitVisitor;
 import nl.tudelft.jpacman.sprite.AnimatedSprite;
 import nl.tudelft.jpacman.sprite.Sprite;
 
@@ -28,6 +29,11 @@ import nl.tudelft.jpacman.sprite.Sprite;
  * @author Jeroen Roosen
  */
 public class Player extends Unit {
+
+    @Override
+    public void accept(UnitVisitor visitor) {
+        visitor.visit(this);
+    }
 
     /**
      * The amount of points accumulated by this player.

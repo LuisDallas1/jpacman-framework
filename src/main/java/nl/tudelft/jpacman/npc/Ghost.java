@@ -3,6 +3,7 @@ package nl.tudelft.jpacman.npc;
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.Unit;
+import nl.tudelft.jpacman.board.UnitVisitor;
 import nl.tudelft.jpacman.npc.ghost.GhostTargetStrategy;
 import nl.tudelft.jpacman.npc.ghost.Navigation;
 import nl.tudelft.jpacman.sprite.Sprite;
@@ -38,6 +39,11 @@ import java.util.Random;
  * @author Jeroen Roosen
  */
 public abstract class Ghost extends Unit {
+
+    @Override
+    public void accept(UnitVisitor visitor) {
+        visitor.visit(this);
+    }
 
     /**
      * The sprite map, one sprite for each direction.

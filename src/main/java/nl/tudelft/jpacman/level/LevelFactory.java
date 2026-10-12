@@ -70,7 +70,7 @@ public class LevelFactory {
     public Level createLevel(Board board, List<Ghost> ghosts,
                              List<Square> startPositions) {
 
-        // We'll adopt the simple collision map for now.
+        // Resolve collisions through typed visitor dispatch.
         CollisionMap collisionMap = new PlayerCollisions();
 
         return new Level(board, ghosts, startPositions, collisionMap);
