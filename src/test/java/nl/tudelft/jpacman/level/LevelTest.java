@@ -1,5 +1,7 @@
 package nl.tudelft.jpacman.level;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static org.mockito.Mockito.mock;
@@ -60,6 +62,8 @@ class LevelTest {
     @BeforeEach
     void setUp() {
         final long defaultInterval = 100L;
+        when(board.iterator()).thenAnswer(invocation ->
+            Collections.<Square>emptyIterator());
         level = new Level(board, Lists.newArrayList(ghost), Lists.newArrayList(
             square1, square2), collisions);
         when(ghost.getInterval()).thenReturn(defaultInterval);

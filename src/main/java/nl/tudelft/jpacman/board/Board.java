@@ -1,12 +1,13 @@
 package nl.tudelft.jpacman.board;
 
+import java.util.Iterator;
 
 /**
  * A top-down view of a matrix of {@link Square}s.
  *
  * @author Jeroen Roosen 
  */
-public class Board {
+public class Board implements Iterable<Square> {
 
     /**
      * The grid of squares with board[x][y] being the square at column x, row y.
@@ -49,6 +50,17 @@ public class Board {
      */
     public int getWidth() {
         return board.length;
+    }
+
+    /**
+     * Returns an independent iterator visiting squares row by row, from left
+     * to right and then from top to bottom.
+     *
+     * @return An iterator over this board's squares.
+     */
+    @Override
+    public Iterator<Square> iterator() {
+        return new BoardIterator(this);
     }
 
     /**

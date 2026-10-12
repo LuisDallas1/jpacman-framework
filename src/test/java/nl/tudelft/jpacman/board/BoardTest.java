@@ -1,10 +1,14 @@
 package nl.tudelft.jpacman.board;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -22,6 +26,41 @@ class BoardTest {
         { mock(Square.class), mock(Square.class), mock(Square.class) },
     };
     private final Board board = new Board(grid);
+
+    /**
+     * Visits every square once in row order on a rectangular board.
+     */
+    @Test
+    void iteratesInRowOrder() {
+        assertThat(board).containsExactly(grid[0][0], grid[1][0],
+            grid[0][1], grid[1][1], grid[0][2], grid[1][2]);
+    }
+
+    /**
+     * Checks exhaustion and the iterator's next contract.
+     */
+    @Test
+    void rejectsNextAfterExhaustion() {
+        Iterator<Square> iterator = board.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+        }
+        assertThat(iterator.hasNext()).isFalse();
+        assertThatThrownBy(iterator::next)
+            .isInstanceOf(NoSuchElementException.class);
+    }
+
+    /**
+     * Checks that separate iterators maintain independent positions.
+     */
+    @Test
+    void iteratorsAreIndependent() {
+        Iterator<Square> first = board.iterator();
+        Iterator<Square> second = board.iterator();
+        assertThat(first.next()).isSameAs(grid[0][0]);
+        assertThat(first.next()).isSameAs(grid[1][0]);
+        assertThat(second.next()).isSameAs(grid[0][0]);
+    }
 
     /**
      * Verifies the board has the correct width.
