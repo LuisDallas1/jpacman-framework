@@ -1,5 +1,7 @@
 package nl.tudelft.jpacman.game;
 
+import java.util.function.Supplier;
+
 import nl.tudelft.jpacman.level.Level;
 import nl.tudelft.jpacman.level.PlayerFactory;
 
@@ -34,6 +36,17 @@ public class GameFactory {
      */
     public Game createSinglePlayerGame(Level level) {
         return new SinglePlayerGame(playerFactory.createPacMan(), level);
+    }
+
+    /**
+     * Creates a single-player game with support for restarting after death.
+     *
+     * @param level The initial level.
+     * @param levelSupplier Factory that reloads the level.
+     * @return A restartable game.
+     */
+    public Game createSinglePlayerGame(Level level, Supplier<Level> levelSupplier) {
+        return new SinglePlayerGame(playerFactory.createPacMan(), level, levelSupplier);
     }
 
     /**

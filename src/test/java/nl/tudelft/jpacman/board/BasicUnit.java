@@ -2,22 +2,14 @@ package nl.tudelft.jpacman.board;
 
 import nl.tudelft.jpacman.sprite.Sprite;
 
-/**
- * Basic implementation of unit.
- *
- * @author Jeroen Roosen 
- */
+/** Minimal unit used to test square occupancy. */
 class BasicUnit extends Unit {
-
-    /**
-     * Creates a new basic unit.
-     */
-    BasicUnit() {
-        super();
+    @Override
+    public void accept(UnitVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override
-    @SuppressWarnings("return.type.incompatible")
     public Sprite getSprite() {
         return null;
     }

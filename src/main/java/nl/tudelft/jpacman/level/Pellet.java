@@ -1,6 +1,7 @@
 package nl.tudelft.jpacman.level;
 
 import nl.tudelft.jpacman.board.Unit;
+import nl.tudelft.jpacman.board.UnitVisitor;
 import nl.tudelft.jpacman.sprite.Sprite;
 
 /**
@@ -9,6 +10,11 @@ import nl.tudelft.jpacman.sprite.Sprite;
  * @author Jeroen Roosen 
  */
 public class Pellet extends Unit {
+
+    @Override
+    public void accept(UnitVisitor visitor) {
+        visitor.visit(this);
+    }
 
     /**
      * The sprite of this unit.

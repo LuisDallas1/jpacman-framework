@@ -1,13 +1,8 @@
 package nl.tudelft.jpacman.npc.ghost;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import nl.tudelft.jpacman.board.Direction;
-import nl.tudelft.jpacman.board.Square;
-import nl.tudelft.jpacman.board.Unit;
-import nl.tudelft.jpacman.level.Player;
 import nl.tudelft.jpacman.npc.Ghost;
 import nl.tudelft.jpacman.sprite.Sprite;
 
@@ -45,12 +40,16 @@ import nl.tudelft.jpacman.sprite.Sprite;
  * Source: http://strategywiki.org/wiki/Pac-Man/Getting_Started
  * </p>
  *
- * @author Jeroen Roosen 
+ * <p>
+ * <strong>Strategy pattern:</strong> Pinky's target-selection behaviour is
+ * encapsulated in {@link PinkyTargetStrategy}. The common navigation skeleton
+ * (path-finding, first-step extraction) is handled by the parent class
+ * {@link Ghost#nextAiMove()}.
+ * </p>
  *
+ * @author Jeroen Roosen
  */
 public class Pinky extends Ghost {
-
-    private static final int SQUARES_AHEAD = 4;
 
     /**
      * The variation in intervals, this makes the ghosts look more dynamic and
@@ -66,42 +65,14 @@ public class Pinky extends Ghost {
     /**
      * Creates a new "Pinky", a.k.a. "Speedy".
      *
-     * @param spriteMap
-     *            The sprites for this ghost.
+     * <p>
+     * Uses {@link PinkyTargetStrategy} as her AI: targets the square four
+     * cells ahead of Pac-Man's current direction.
+     * </p>
+     *
+     * @param spriteMap The sprites for this ghost.
      */
     public Pinky(Map<Direction, Sprite> spriteMap) {
-        super(spriteMap, MOVE_INTERVAL, INTERVAL_VARIATION);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>
-     * When the ghosts are not patrolling their home corners, Pinky wants to go
-     * to the place that is four grid spaces ahead of Pac-Man in the direction
-     * that Pac-Man is facing. If Pac-Man is facing down, Pinky wants to go to
-     * the location exactly four spaces below Pac-Man. Moving towards this place
-     * uses the same logic that Blinky uses to find Pac-Man's exact location.
-     * Pinky is affected by a targeting bug if Pac-Man is facing up - when he
-     * moves or faces up, Pinky tries moving towards a point up, and left, four
-     * spaces.
-     * </p>
-     */
-    @Override
-    public Optional<Direction> nextAiMove() {
-        assert hasSquare();
-
-        Unit player = Navigation.findNearest(Player.class, getSquare());
-        if (player == null) {
-            return Optional.empty();
-        }
-        assert player.hasSquare();
-        Square destination = player.squaresAheadOf(SQUARES_AHEAD);
-
-        List<Direction> path = Navigation.shortestPath(getSquare(), destination, this);
-        if (path != null && !path.isEmpty()) {
-            return Optional.ofNullable(path.get(0));
-        }
-        return Optional.empty();
+        super(spriteMap, MOVE_INTERVAL, INTERVAL_VARIATION, new PinkyTargetStrategy());
     }
 }

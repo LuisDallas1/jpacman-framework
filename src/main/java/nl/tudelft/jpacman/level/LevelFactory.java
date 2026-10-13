@@ -1,17 +1,13 @@
 package nl.tudelft.jpacman.level;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import nl.tudelft.jpacman.board.Board;
-import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.npc.Ghost;
-import nl.tudelft.jpacman.npc.ghost.GhostColor;
 import nl.tudelft.jpacman.npc.ghost.GhostFactory;
+import nl.tudelft.jpacman.npc.ghost.RandomTargetStrategy;
 import nl.tudelft.jpacman.sprite.PacManSprites;
-import nl.tudelft.jpacman.sprite.Sprite;
 
 /**
  * Factory that creates levels and units.
@@ -74,14 +70,27 @@ public class LevelFactory {
     public Level createLevel(Board board, List<Ghost> ghosts,
                              List<Square> startPositions) {
 
-        // We'll adopt the simple collision map for now.
+        // Resolve collisions through typed visitor dispatch.
         CollisionMap collisionMap = new PlayerCollisions();
 
         return new Level(board, ghosts, startPositions, collisionMap);
     }
 
     /**
-     * Creates a new ghost.
+     * Creates a new ghost, cycling through the four classic ghost types in
+     * order (Blinky → Inky → Pinky → Clyde). If the switch falls through to
+     * the default branch (which cannot happen in normal gameplay given
+     * {@code GHOSTS == 4}), a wandering ghost backed by
+     * {@link RandomTargetStrategy} is returned instead of an anonymous subclass.
+     *
+     * <p>
+     * <strong>Strategy pattern:</strong> the previous {@code default} branch
+     * instantiated a private {@code RandomGhost} inner class whose sole
+     * purpose was to return {@link java.util.Optional#empty()} from
+     * {@code nextAiMove()}. That subclass has been removed; the same effect is
+     * now achieved by configuring a standard {@link nl.tudelft.jpacman.npc.ghost.Blinky}
+     * (or any Ghost subclass) with a {@link RandomTargetStrategy}.
+     * </p>
      *
      * @return The new ghost.
      */
@@ -98,7 +107,11 @@ public class LevelFactory {
             case CLYDE:
                 return ghostFact.createClyde();
             default:
-                return new RandomGhost(sprites.getGhostSprite(GhostColor.RED));
+                // Fallback: a Blinky-shaped ghost configured to wander randomly.
+                // RandomTargetStrategy replaces the former RandomGhost inner class.
+                Ghost wanderer = ghostFact.createBlinky();
+                wanderer.setTargetStrategy(new RandomTargetStrategy());
+                return wanderer;
         }
     }
 
@@ -109,33 +122,5 @@ public class LevelFactory {
      */
     public Pellet createPellet() {
         return new Pellet(PELLET_VALUE, sprites.getPelletSprite());
-    }
-
-    /**
-     * Implementation of an NPC that wanders around randomly.
-     *
-     * @author Jeroen Roosen
-     */
-    private static final class RandomGhost extends Ghost {
-
-        /**
-         * The suggested delay between moves.
-         */
-        private static final long DELAY = 175L;
-
-        /**
-         * Creates a new random ghost.
-         *
-         * @param ghostSprite
-         *            The sprite for the ghost.
-         */
-        RandomGhost(Map<Direction, Sprite> ghostSprite) {
-            super(ghostSprite, (int) DELAY, 0);
-        }
-
-        @Override
-        public Optional<Direction> nextAiMove() {
-            return Optional.empty();
-        }
     }
 }

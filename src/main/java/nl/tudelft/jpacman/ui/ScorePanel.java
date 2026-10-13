@@ -7,17 +7,32 @@ import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import nl.tudelft.jpacman.level.Player;
+import nl.tudelft.jpacman.level.PlayerObserver;
 
 /**
  * A panel consisting of a column for each player, with the numbered players on
  * top and their respective scores underneath.
  *
- * @author Jeroen Roosen 
+ * <p>
+ * <strong>Observer pattern:</strong> {@code ScorePanel} is the
+ * <em>ConcreteObserver</em>. It implements {@link PlayerObserver} and registers
+ * itself as an observer of each {@link Player} at construction time. Label
+ * updates are now driven by events ({@link #scoreChanged(int)} and
+ * {@link #playerDied()}) rather than by the periodic {@code refresh()} call
+ * that {@link PacManUI} previously scheduled every 40 ms.
+ * </p>
  *
+ * <p>
+ * Because Swing updates must happen on the Event Dispatch Thread, all label
+ * mutations are wrapped with {@link SwingUtilities#invokeLater}.
+ * </p>
+ *
+ * @author Jeroen Roosen
  */
-public class ScorePanel extends JPanel {
+public class ScorePanel extends JPanel implements PlayerObserver {
 
     /**
      * Default serialisation ID.
@@ -41,7 +56,8 @@ public class ScorePanel extends JPanel {
     private ScoreFormatter scoreFormatter = DEFAULT_SCORE_FORMATTER;
 
     /**
-     * Creates a new score panel with a column for each player.
+     * Creates a new score panel with a column for each player and registers
+     * itself as an observer of each player.
      *
      * @param players
      *            The players to display the scores of.
@@ -60,13 +76,55 @@ public class ScorePanel extends JPanel {
             JLabel scoreLabel = new JLabel("0", JLabel.CENTER);
             scoreLabels.put(player, scoreLabel);
             add(scoreLabel);
+            // Register as observer — no polling needed anymore.
+            player.addObserver(this);
         }
     }
 
     /**
-     * Refreshes the scores of the players.
+     * Called by {@link Player} when a player's score increases.
+     *
+     * <p>
+     * Finds the label for the affected player and updates its text on the
+     * Swing Event Dispatch Thread.
+     * </p>
+     *
+     * @param newScore The player's updated total score (unused directly; the
+     *                 label is refreshed from the player object to keep
+     *                 formatting consistent with {@link #scoreFormatter}).
      */
-    protected void refresh() {
+    @Override
+    public void scoreChanged(int newScore) {
+        SwingUtilities.invokeLater(this::refreshAllLabels);
+    }
+
+    /**
+     * Called by {@link Player} when the player dies.
+     *
+     * <p>
+     * Updates all labels on the Swing Event Dispatch Thread so the "You died."
+     * prefix appears immediately.
+     * </p>
+     */
+    @Override
+    public void playerDied() {
+        SwingUtilities.invokeLater(this::refreshAllLabels);
+    }
+
+    /**
+     * Refreshes all score labels from the current player state.
+     *
+     * <p>
+     * This method replaces the old {@code refresh()} that was called
+     * periodically by {@link PacManUI}. It is now invoked only when a player
+     * event fires, eliminating redundant work during frames where nothing changed.
+     * </p>
+     *
+     * <p>
+     * Must be called on the Swing Event Dispatch Thread.
+     * </p>
+     */
+    private void refreshAllLabels() {
         for (Map.Entry<Player, JLabel> entry : scoreLabels.entrySet()) {
             Player player = entry.getKey();
             String score = "";

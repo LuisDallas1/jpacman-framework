@@ -299,12 +299,10 @@ public class Level {
     public int remainingPellets() {
         Board board = getBoard();
         int pellets = 0;
-        for (int x = 0; x < board.getWidth(); x++) {
-            for (int y = 0; y < board.getHeight(); y++) {
-                for (Unit unit : board.squareAt(x, y).getOccupants()) {
-                    if (unit instanceof Pellet) {
-                        pellets++;
-                    }
+        for (Square square : board) {
+            for (Unit unit : square.getOccupants()) {
+                if (unit instanceof Pellet) {
+                    pellets++;
                 }
             }
         }

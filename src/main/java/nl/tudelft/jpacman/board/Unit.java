@@ -10,6 +10,12 @@ import nl.tudelft.jpacman.sprite.Sprite;
 public abstract class Unit {
 
     /**
+     * Dispatches to the visitor operation for this unit's category.
+     * @param visitor The visitor receiving this unit.
+     */
+    public abstract void accept(UnitVisitor visitor);
+
+    /**
      * The square this unit is currently occupying.
      */
     private Square square;
